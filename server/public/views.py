@@ -39,18 +39,15 @@ class PreSignedPostViewSet(GenericViewSet):
         pre_signed_url: dict = s3_client.generate_presigned_post(  # More flexibility
             Bucket=settings.AWS_STORAGE_BUCKET_NAME,
             Key=f"profile/{new_file_name}.jpg",
-            Fields={
-                "acl": "public-read",
-                "Content-Type": "image/",
-            },
+            Fields={"acl": "public-read", "Content-Type": "image/",},
             # https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-HTTPPOSTConstructPolicy.html
             Conditions=[
                 {"acl": "public-read"},
                 ["starts-with", "$key", "profile/"],
                 ["starts-with", "$Content-Type", "image/"],
-                ["content-length-range", 10240, 512000]  # in KiB = 10-500kb
+                ["content-length-range", 10240, 512000],  # in KiB = 10-500kb
             ],
-            ExpiresIn=60 * 60 * 5  # Link goes down in 5 hours
+            ExpiresIn=60 * 60 * 5,  # Link goes down in 5 hours
         )
 
         return Response(data=pre_signed_url)
