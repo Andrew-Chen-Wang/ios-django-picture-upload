@@ -13,14 +13,13 @@ public enum AuthAPI {
     case both
     
     // Other API stuff
-    case uploadToServer(index: Int)
-    case uploadProfilePicture
+    case uploadToServer
 }
 
 extension AuthAPI: EndPointType {
     var environmentBaseURL : String {
         switch AuthNetworkManager.environment {
-        case .local: return "http://127.0.0.1:8000/"
+        case .local: return "http://127.0.0.1:8000/api/"
         // Return your actual domain
         case .staging: return "https://staging.themoviedb.org/3/movie/"
         case .production: return "https://api.themoviedb.org/3/movie/"
@@ -50,13 +49,11 @@ extension AuthAPI: EndPointType {
         // The path for api/ is already in baseURL
         switch self {
         case .access:
-            return "api/token/access/"
+            return "token/access/"
         case .both:
-            return "api/token/both/"
-        case .uploadToServer(let index):
-            return "image/?index=\(index)&&ext=jpg"
-        case .uploadProfilePicture:
-            return "profile/"
+            return "token/both/"
+        case .uploadToServer:
+            return "presigned/"
         }
     }
     

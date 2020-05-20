@@ -84,8 +84,8 @@ struct AuthNetworkManager {
     }
     
     /// For getting an AWS pre signed post url
-    func uploadToServer(index: Int, completion: @escaping (_ response: URL?, _ error: String?) -> ()) {
-        router.request(.uploadToServer(index: index), completion: { data, response, error in
+    func uploadToServer(completion: @escaping (_ response: AWSApiResponse?, _ error: String?) -> ()) {
+        router.request(.uploadToServer, completion: { data, response, error in
             if error != nil {
                 completion(nil, self.networkConnErrorMsg)
             }
@@ -99,36 +99,7 @@ struct AuthNetworkManager {
                         return
                     }
                     do {
-                        let apiResponse = try JSONDecoder().decode(URL.self, from: responseData)
-                        completion(apiResponse, nil)
-                    } catch {
-                        print(error)
-                        completion(nil, NetworkResponse.unableToDecode.rawValue)
-                    }
-
-                case .failure(let networkFailureError):
-                    completion(nil, networkFailureError)
-                }
-            }
-        })
-    }
-    
-    func uploadProfilePicture(completion: @escaping (_ response: URL?, _ error: String?) -> ()) {
-        router.request(.uploadProfilePicture, completion: { data, response, error in
-            if error != nil {
-                completion(nil, self.networkConnErrorMsg)
-            }
-            
-            if let response = response as? HTTPURLResponse {
-                let result = handleNetworkResponse(response, data)
-                switch result {
-                case .success:
-                    guard let responseData = data else {
-                        completion(nil, NetworkResponse.noData.rawValue)
-                        return
-                    }
-                    do {
-                        let apiResponse = try JSONDecoder().decode(URL.self, from: responseData)
+                        let apiResponse = try JSONDecoder().decode(AWSApiResponse.self, from: responseData)
                         completion(apiResponse, nil)
                     } catch {
                         print(error)

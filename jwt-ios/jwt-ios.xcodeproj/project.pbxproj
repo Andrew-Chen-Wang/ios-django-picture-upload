@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EC2F82E82475811300F8D27C /* AWSApiResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2F82E72475811300F8D27C /* AWSApiResponse.swift */; };
 		EC52AA2C240D9D4B001E14AF /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC52AA2B240D9D4B001E14AF /* AppDelegate.swift */; };
 		EC52AA32240D9D4E001E14AF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EC52AA31240D9D4E001E14AF /* Assets.xcassets */; };
 		EC52AA38240D9D4E001E14AF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EC52AA36240D9D4E001E14AF /* LaunchScreen.storyboard */; };
@@ -34,7 +35,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		EC52AA28240D9D4B001E14AF /* jwt-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "jwt-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		EC2F82E72475811300F8D27C /* AWSApiResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AWSApiResponse.swift; sourceTree = "<group>"; };
+		EC52AA28240D9D4B001E14AF /* Picture Upload.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Picture Upload.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		EC52AA2B240D9D4B001E14AF /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		EC52AA31240D9D4E001E14AF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EC52AA37240D9D4E001E14AF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -84,7 +86,7 @@
 		EC52AA29240D9D4B001E14AF /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				EC52AA28240D9D4B001E14AF /* jwt-ios.app */,
+				EC52AA28240D9D4B001E14AF /* Picture Upload.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -162,6 +164,7 @@
 			children = (
 				EC52AA6F240EF2F5001E14AF /* AuthApiResponse.swift */,
 				ECEEA312246A121A005812BF /* PingApiResponse.swift */,
+				EC2F82E72475811300F8D27C /* AWSApiResponse.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -194,7 +197,7 @@
 			);
 			name = "jwt-ios";
 			productName = "jwt-ios";
-			productReference = EC52AA28240D9D4B001E14AF /* jwt-ios.app */;
+			productReference = EC52AA28240D9D4B001E14AF /* Picture Upload.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -269,6 +272,7 @@
 				ECEEA313246A121A005812BF /* PingApiResponse.swift in Sources */,
 				EC80E4112411932E00B94A6F /* QuickAuthenticate.swift in Sources */,
 				EC52AA6E240EEEDA001E14AF /* AuthNetworkManager.swift in Sources */,
+				EC2F82E82475811300F8D27C /* AWSApiResponse.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -413,7 +417,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.example.jwt-ios";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Picture Upload";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -433,7 +437,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.example.jwt-ios";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Picture Upload";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

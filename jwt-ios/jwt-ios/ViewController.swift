@@ -22,14 +22,22 @@ class ViewController: UIViewController {
         uploadButton.addTarget(self, action: #selector(uploadPicture), for: .touchUpInside)
         uploadButton.setTitle("Profile Picture", for: .normal)
         uploadButton.backgroundColor = .red
+        
         profilePicker.allowsEditing = true
         profilePicker.sourceType = .savedPhotosAlbum
         profilePicker.mediaTypes = ["public.image"]
         profilePicker.delegate = self
+        
         awsButton.translatesAutoresizingMaskIntoConstraints = false
         awsButton.addTarget(self, action: #selector(uploadPicture), for: .touchUpInside)
         awsButton.setTitle("AWS Summary", for: .normal)
         awsButton.backgroundColor = .orange
+        
+        summaryPicker.allowsEditing = true
+        summaryPicker.sourceType = .savedPhotosAlbum
+        summaryPicker.mediaTypes = ["public.image"]
+        summaryPicker.delegate = self
+        
         view.addSubview(uploadButton)
         view.addSubview(awsButton)
         NSLayoutConstraint.activate([
@@ -51,7 +59,7 @@ class ViewController: UIViewController {
                 // For the profile picture
                 present(profilePicker, animated: true)
             case awsButton:
-                break
+                present(summaryPicker, animated: true)
             default:
                 break
             }
@@ -80,7 +88,49 @@ class ViewController: UIViewController {
         task.resume()
     }
     
-    func uploadToAWS() {}
+    func uploadToAWS(file: URL) {
+        AuthNetworkManager().uploadToServer(completion: { response, error in
+            if error != nil {
+                print(error ?? "")
+            } else {
+                self.uploadImageToAWS(file: file, response: response!)
+            }
+        })
+    }
+    
+    private func uploadImageToAWS(file: URL, response: AWSApiResponse) {
+        var request = URLRequest(url: response.url)
+        request.httpMethod = "POST"
+        request.setValue("multipart/form-data", forHTTPHeaderField: "Content-Type")
+        request.setValue(
+            """
+            form-data; filename="hi.jpg";
+            Policy="\(String(describing: response.fields["policy"]))";
+            acl="\(String(describing: response.fields["acl"]))";
+            key="\(String(describing: response.fields["key"]))"
+            X-AMZ-Signature="\(String(describing: response.fields["signature"]))";
+            AWSAccessKeyId="\(String(describing: response.fields["AWSAccessKeyId"]))"
+            """,
+            forHTTPHeaderField: "Content-Disposition"
+        )
+        let task = URLSession.shared.uploadTask(with: request, fromFile: file, completionHandler: { data, response, error in
+            if let response = response as? HTTPURLResponse {
+                let result = handleNetworkResponse(response, data)
+                switch result {
+                case .success:
+                    print("Successfully updated profile.")
+                case .failure(let networkError):
+                    let data = data!
+                    if let responseString = String(bytes: data, encoding: .utf8) {
+                        print(responseString)
+                    } else {
+                        print(networkError)
+                    }
+                }
+            }
+        })
+        task.resume()
+    }
 }
 
 extension ViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
@@ -89,7 +139,7 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
         case profilePicker:
             uploadPictureServer(file: info[.imageURL] as! URL)
         case summaryPicker:
-            uploadToAWS()
+            uploadToAWS(file: info[.imageURL] as! URL)
         default:
             break
         }
