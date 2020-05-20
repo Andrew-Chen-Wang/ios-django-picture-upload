@@ -24,13 +24,45 @@ enum Result<String> {
     case failure(String)
 }
 
-func handleNetworkResponse(_ response: HTTPURLResponse) -> Result<String> {
-    switch response.statusCode {
-    case 200...299: return .success
-    case 401: return .failure(NetworkResponse.authenticationError.rawValue)
-    case 400...500: return .failure(NetworkResponse.badRequest.rawValue)
-    case 501...599: return .failure(NetworkResponse.serverError.rawValue)
-    case 600: return .failure(NetworkResponse.outdated.rawValue)
-    default: return .failure(NetworkResponse.failed.rawValue)
+fileprivate struct ErrorResponse: Decodable {
+    let error: String
+    
+    private enum CodingKeys: String, CodingKey {
+        case error
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        error = try container.decode(String.self, forKey: .error)
+    }
+}
+
+func returnDefaultErrorMessage(code: Int) -> String {
+    switch code {
+    case 401: return NetworkResponse.authenticationError.rawValue
+    case 400...500: return NetworkResponse.badRequest.rawValue
+    case 501...599: return NetworkResponse.serverError.rawValue
+    case 600: return NetworkResponse.outdated.rawValue
+    default: return NetworkResponse.failed.rawValue
+    }
+}
+
+func handleNetworkResponse(_ response: HTTPURLResponse, _ data: Data?) -> Result<String> {
+    if (200...299).contains(response.statusCode) {
+        return .success
+    } else {
+        guard let responseData = data else {
+            return .failure(returnDefaultErrorMessage(code: response.statusCode))
+        }
+        do {
+            print(responseData)
+            let jsonData = try JSONSerialization.jsonObject(with: responseData, options: .mutableContainers)
+            print(jsonData)
+            let apiResponse = try JSONDecoder().decode(ErrorResponse.self, from: responseData)
+            return .failure(apiResponse.error)
+        } catch {
+            print("WTF")
+            return .failure(returnDefaultErrorMessage(code: response.statusCode))
+        }
     }
 }

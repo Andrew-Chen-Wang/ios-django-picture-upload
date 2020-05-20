@@ -9,21 +9,18 @@
 import Foundation
 
 public enum AuthAPI {
-    // We don't actually have registration setup on the server
-    // We don't need password listed twice. Pw validation should happen client side unless you want to be lazy like me and use NotificationBannerSwift and show the errors as strings there
-    case register(username: String, email: String, password: String)
     case access
-    case both  // This is essentially logging in since simplejwt automatically checks for authentication https://github.com/davesque/django-rest-framework-simplejwt/blob/master/rest_framework_simplejwt/serializers.py#L33. Returns 401 code if incorrect credentials
+    case both
     
     // Other API stuff
-    case ping(id: Int)
-    case whatever
+    case uploadToServer(index: Int)
+    case uploadProfilePicture
 }
 
 extension AuthAPI: EndPointType {
     var environmentBaseURL : String {
         switch AuthNetworkManager.environment {
-        case .local: return "http://127.0.0.1:8000/api/"
+        case .local: return "http://127.0.0.1:8000/"
         // Return your actual domain
         case .staging: return "https://staging.themoviedb.org/3/movie/"
         case .production: return "https://api.themoviedb.org/3/movie/"
@@ -36,17 +33,12 @@ extension AuthAPI: EndPointType {
     }
     
     var httpMethod: HTTPMethod {
-        switch self {
-        case .register, .access, .both:
-            return .post
-        default:
-            return .get
-        }
+        return .post
     }
     
     var headers: HTTPHeaders? {
         switch self {
-        case .register, .access, .both:
+        case .access, .both:
             // Authentication does not need Bearer token for authentication
             return nil
         default:
@@ -57,31 +49,19 @@ extension AuthAPI: EndPointType {
     var path: String {
         // The path for api/ is already in baseURL
         switch self {
-        case .register:
-            return "accounts/register/"
         case .access:
-            return "token/access/"
+            return "api/token/access/"
         case .both:
-            return "token/both/"
-        case .ping:
-            return "ping/"
-        case .whatever:
-            return "whatever/"
+            return "api/token/both/"
+        case .uploadToServer(let index):
+            return "image/?index=\(index)&&ext=jpg"
+        case .uploadProfilePicture:
+            return "profile/"
         }
     }
     
     var task: HTTPTask {
         switch self {
-        case .register(let username, let email, let password):
-            return .requestParameters(
-                bodyParameters: [
-                    "username": username,
-                    "email": email,
-                    "password": password
-                ],
-                bodyEncoding: .jsonEncoding,
-                urlParameters: nil
-            )
         case .access:
             return .requestParameters(
                 bodyParameters: [
@@ -99,14 +79,6 @@ extension AuthAPI: EndPointType {
                 ],
                 bodyEncoding: .jsonEncoding,
                 urlParameters: nil
-            )
-        case .ping(let id):
-            return .requestParameters(
-                bodyParameters: nil,
-                bodyEncoding: .urlEncoding,
-                urlParameters: [
-                    "id": id
-                ]
             )
         default:
             return .request

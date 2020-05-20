@@ -9,65 +9,91 @@
 import UIKit
 
 class ViewController: UIViewController {
-    let label = UILabel()
-    var pingCount = 0
-    
-    // Necessary so we stop infinitely pinging when sign out. In production, please never do an infinite request like this...
-    var inView: Bool = false
+    let uploadButton = UIButton()
+    let profilePicker = UIImagePickerController()
+    let awsButton = UIButton()
+    let summaryPicker = UIImagePickerController()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
 
-        label.text = "Number of pings: \(pingCount)"
-        label.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(label)
+        uploadButton.translatesAutoresizingMaskIntoConstraints = false
+        uploadButton.addTarget(self, action: #selector(uploadPicture), for: .touchUpInside)
+        uploadButton.setTitle("Profile Picture", for: .normal)
+        uploadButton.backgroundColor = .red
+        profilePicker.allowsEditing = true
+        profilePicker.sourceType = .savedPhotosAlbum
+        profilePicker.mediaTypes = ["public.image"]
+        profilePicker.delegate = self
+        awsButton.translatesAutoresizingMaskIntoConstraints = false
+        awsButton.addTarget(self, action: #selector(uploadPicture), for: .touchUpInside)
+        awsButton.setTitle("AWS Summary", for: .normal)
+        awsButton.backgroundColor = .orange
+        view.addSubview(uploadButton)
+        view.addSubview(awsButton)
         NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            label.heightAnchor.constraint(equalToConstant: 15)
+            uploadButton.topAnchor.constraint(equalTo: view.topAnchor),
+            uploadButton.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            uploadButton.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            
+            awsButton.topAnchor.constraint(equalTo: uploadButton.bottomAnchor),
+            awsButton.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            awsButton.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            awsButton.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
-        
-        // Begining async calling to check if expired or not
-        inView = true
-        testLogin()
     }
     
-    private func updatePingCount() {
-        pingCount += 1
-        label.text = "Number of pings: \(pingCount)"
+    @objc func uploadPicture(_ sender: UIButton) {
+        if UIImagePickerController.availableMediaTypes(for: .savedPhotosAlbum) != nil {
+            switch sender {
+            case uploadButton:
+                // For the profile picture
+                present(profilePicker, animated: true)
+            case awsButton:
+                break
+            default:
+                break
+            }
+        } else {
+            print("You need to allow pictures!")
+        }
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        inView = false
-    }
-    
-    /// Test login against server every second
-    func testLogin() {
-        // Required for UI changing
-        // You can also do DispatchQueue.main.async instead of a DispatchGroup to perform UI API methods. Notable in Router.swift
-        let group = DispatchGroup()
-        group.enter()
-        // The simulation may "lag" but it's really just this one second delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
-            // Perform ping test. Replace with whatever network thing you need to perform.
-            AuthNetworkManager().ping(id: 10) { response, error in
-                if let error = error {
-                    print(error)
+    func uploadPictureServer(file: URL) {
+        var request = URLRequest(url: URL(string: "http://127.0.0.1:8000/profile/")!)
+        request.setValue("Bearer \(getAuthToken(.access))", forHTTPHeaderField: "Authorization")
+        request.httpMethod = "POST"
+        request.setValue("multipart/form-data", forHTTPHeaderField: "Content-Type")
+        request.setValue("inline; filename=\"hi.jpg\"", forHTTPHeaderField: "Content-Disposition")
+        let task = URLSession.shared.uploadTask(with: request, fromFile: file, completionHandler: { data, response, error in
+            if let response = response as? HTTPURLResponse {
+                let result = handleNetworkResponse(response, data)
+                switch result {
+                case .success:
+                    print("Successfully updated the profile picture.")
+                case .failure(let networkError):
+                    print(networkError)
                 }
-                group.leave()
             }
         })
-        
-        group.notify(queue: .main) {
-            // This is where you do your stuff. DO NOT do it in that DispatchQueue since all your UI actions need to happen on the main thread. So replace updatePingCount() with whatever you need to do.
-            self.updatePingCount()
-            // Re-run ping function to shoe how automatic Auth Works.
-            if self.inView == true {
-                self.testLogin()
-            }
+        task.resume()
+    }
+    
+    func uploadToAWS() {}
+}
+
+extension ViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        switch picker {
+        case profilePicker:
+            uploadPictureServer(file: info[.imageURL] as! URL)
+        case summaryPicker:
+            uploadToAWS()
+        default:
+            break
         }
+        self.dismiss(animated: true)
     }
 }
 

@@ -19,7 +19,7 @@ class Router<EndPoint: EndPointType>: NetworkRouter {
             task = session.dataTask(with: request, completionHandler: { data, response, error in
                 // Handle intercepting
                 if let response = response as? HTTPURLResponse {
-                    let result = handleNetworkResponse(response)
+                    let result = handleNetworkResponse(response, data)
                     switch result {
                     case .success:
                         completion(data, response, error)

@@ -9,7 +9,8 @@ router.register('ping', views.PingViewSet, basename="ping")
 urlpatterns = [
     path('api/token/access/', TokenRefreshView.as_view(), name='token_get_access'),
     path('api/token/both/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/', include(router.urls))
+    path('api/', include(router.urls)),
+    path("profile/", views.ServerUploadPicView.as_view())
 ]
 
 """

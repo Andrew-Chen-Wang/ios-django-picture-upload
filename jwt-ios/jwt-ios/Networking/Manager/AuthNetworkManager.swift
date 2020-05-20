@@ -23,7 +23,7 @@ struct AuthNetworkManager {
             }
             
             if let response = response as? HTTPURLResponse {
-                let result = handleNetworkResponse(response)
+                let result = handleNetworkResponse(response, data)
                 switch result {
                 case .success:
                     guard let responseData = data else {
@@ -31,12 +31,10 @@ struct AuthNetworkManager {
                         return
                     }
                     do {
-                        // IMPORTANT. You can change that AuthApiResponse to whatever you want so you don't clutter all your responses in one struct
                         print(responseData)
                         let jsonData = try JSONSerialization.jsonObject(with: responseData, options: .mutableContainers)
                         print(jsonData)
                         let apiResponse = try JSONDecoder().decode(AuthApiResponse.self, from: responseData)
-                        print(apiResponse)
                         saveAuthToken(.access, apiResponse.access)
                         completion(nil, nil)
                     } catch {
@@ -59,7 +57,7 @@ struct AuthNetworkManager {
             }
             
             if let response = response as? HTTPURLResponse {
-                let result = handleNetworkResponse(response)
+                let result = handleNetworkResponse(response, data)
                 switch result {
                 case .success:
                     guard let responseData = data else {
@@ -67,7 +65,6 @@ struct AuthNetworkManager {
                         return
                     }
                     do {
-                        print(responseData)
                         let jsonData = try JSONSerialization.jsonObject(with: responseData, options: .mutableContainers)
                         print(jsonData)
                         let apiResponse = try JSONDecoder().decode(AuthApiResponse.self, from: responseData)
@@ -86,15 +83,15 @@ struct AuthNetworkManager {
         }
     }
     
-    func ping(id: Int, completion: @escaping (_ auth: PingApiResponse?, _ error: String?) -> ()) {
-        router.request(.ping(id: id)) { data, response, error in
-            
+    /// For getting an AWS pre signed post url
+    func uploadToServer(index: Int, completion: @escaping (_ response: URL?, _ error: String?) -> ()) {
+        router.request(.uploadToServer(index: index), completion: { data, response, error in
             if error != nil {
                 completion(nil, self.networkConnErrorMsg)
             }
             
             if let response = response as? HTTPURLResponse {
-                let result = handleNetworkResponse(response)
+                let result = handleNetworkResponse(response, data)
                 switch result {
                 case .success:
                     guard let responseData = data else {
@@ -102,10 +99,7 @@ struct AuthNetworkManager {
                         return
                     }
                     do {
-                        print(responseData)
-                        let jsonData = try JSONSerialization.jsonObject(with: responseData, options: .mutableContainers)
-                        print(jsonData)
-                        let apiResponse = try JSONDecoder().decode(PingApiResponse.self, from: responseData)
+                        let apiResponse = try JSONDecoder().decode(URL.self, from: responseData)
                         completion(apiResponse, nil)
                     } catch {
                         print(error)
@@ -116,6 +110,35 @@ struct AuthNetworkManager {
                     completion(nil, networkFailureError)
                 }
             }
-        }
+        })
+    }
+    
+    func uploadProfilePicture(completion: @escaping (_ response: URL?, _ error: String?) -> ()) {
+        router.request(.uploadProfilePicture, completion: { data, response, error in
+            if error != nil {
+                completion(nil, self.networkConnErrorMsg)
+            }
+            
+            if let response = response as? HTTPURLResponse {
+                let result = handleNetworkResponse(response, data)
+                switch result {
+                case .success:
+                    guard let responseData = data else {
+                        completion(nil, NetworkResponse.noData.rawValue)
+                        return
+                    }
+                    do {
+                        let apiResponse = try JSONDecoder().decode(URL.self, from: responseData)
+                        completion(apiResponse, nil)
+                    } catch {
+                        print(error)
+                        completion(nil, NetworkResponse.unableToDecode.rawValue)
+                    }
+
+                case .failure(let networkFailureError):
+                    completion(nil, networkFailureError)
+                }
+            }
+        })
     }
 }
