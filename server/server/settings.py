@@ -37,6 +37,8 @@ ALLOWED_HOSTS = ["127.0.0.1", "localhost", "192.168.0.12"]
 # IMPORTANT STUFF
 # IMPORTANT STUFF
 
+IN_TEST = False
+
 # So that I can manipulate all photos for checking
 # And for S3 upload to be easier by just using a file
 # Instead of from memory

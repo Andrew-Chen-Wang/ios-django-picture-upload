@@ -7,7 +7,7 @@ from django.core.files.uploadedfile import TemporaryUploadedFile
 from django.utils.crypto import get_random_string
 from rest_framework import status
 from rest_framework.mixins import ListModelMixin
-from rest_framework.parsers import FileUploadParser
+from rest_framework.parsers import FileUploadParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -54,7 +54,12 @@ class PreSignedPostViewSet(GenericViewSet):
 
 
 class ServerUploadPicView(APIView):
-    parser_classes = (FileUploadParser,)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if settings.IN_TEST:
+            self.parser_classes = (MultiPartParser,)
+        else:
+            self.parser_classes = (FileUploadParser,)
 
     def post(self, request):
         serializer = ProfilePictureSerializer(data=request.data)
