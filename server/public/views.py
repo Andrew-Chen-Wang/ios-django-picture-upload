@@ -1,6 +1,7 @@
 import os
 
 import boto3
+from botocore.client import Config
 from botocore.exceptions import ClientError
 from django.conf import settings
 from django.core.files.uploadedfile import TemporaryUploadedFile
@@ -30,6 +31,8 @@ class PreSignedPostViewSet(GenericViewSet):
                 "s3",
                 aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                 aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                region_name=settings.AWS_REGION_NAME,
+                config=Config(signature_version='s3v4')
             )
         else:
             # Your EC2 machine should not have .env files
